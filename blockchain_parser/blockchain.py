@@ -79,7 +79,7 @@ class Blockchain(object):
             yields the blocks contained in the .blk files by their height
             order, however since the blocks are not always ordered in the blockchain
             it stores the blocks that came early while searching for the current one.
-            
+
             meaning you could potentially have several blocks in memory
             depending on the state of the blockchain.
             """
@@ -88,27 +88,28 @@ class Blockchain(object):
             blockchain_generator = self.get_unordered_blocks()
             block_height = 0
             while True:
-                block_height = block_height + 1
                 #checking if next block is not already in the early_block_pool
                 if len(early_block_pool) != 0:
                     try:
                         wanted_early_block = early_block_pool[previous_hash]
                         del early_block_pool[previous_hash]
                         previous_hash = wanted_early_block.hash
-                        wanted_early_block.height = block_height - 1
+                        wanted_early_block.height = block_height
+                        block_height = block_height + 1
                         yield wanted_early_block
                         continue
                     except KeyError:
                         pass
 
                 #was not in the early_block_pool, reading new block from drive
-                current_block = blockchain_generator.next()
+                current_block = next(blockchain_generator)
 
                 #special case, looking for genesis block
                 if previous_hash is None:
                     if current_block.hash == BITCOIN_GENESIS_BLOCK_HASH:
                         previous_hash = current_block.hash
-                        current_block.height = block_height - 1
+                        current_block.height = block_height
+                        block_height = block_height + 1
                         yield current_block
                         continue
                     else:
@@ -117,7 +118,8 @@ class Blockchain(object):
                 else:
                     if current_block.header.previous_block_hash == previous_hash:
                         previous_hash = current_block.hash
-                        current_block.height = block_height - 1
+                        current_block.height = block_height
+                        block_height = block_height + 1
                         yield current_block
                         continue
                     else:
