@@ -9,5 +9,5 @@ blockchain = Blockchain(sys.argv[1])
 # To get the blocks ordered by height, you need to provide the path of the
 # `index` directory (LevelDB index) being maintained by bitcoind. It contains
 # .ldb files and is present inside the `blocks` directory
-for block in blockchain.get_ordered_blocks(sys.argv[1] + '/index', end=1000):
+for block in blockchain.get_ordered_blocks(sys.argv[1] + '/index', end=1000, cache='/tmp/index-cache.pickle'):
     print("height=%d block=%s" % (block.height, block.hash))
